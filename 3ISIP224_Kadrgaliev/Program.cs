@@ -23,8 +23,19 @@ namespace _3ISIP224_Kadrgaliev
             }
             else
             {
-                //Console.WriteLine("Введите свои траты, которые будут записаны: ");
-                //Console.Write("Пример: (Влажные салфетки \"Лента\"; 235)");
+                List<(string Name, decimal Amount)> expenses = new List<(string Name, decimal Amount)>();
+                Console.WriteLine("Введите свои траты, которые будут записаны: ");
+                Console.Write("Пример: (Влажные салфетки \"Лента\"; 235)");
+                for (int i = 0; i < countFinTran; i++)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine($"Операция #{i + 1}");
+                    Console.Write("Название услуги или товара: ");
+                    string name = Console.ReadLine();
+                    Console.Write("Количество потраченных денег: ");
+                    decimal amount = Convert.ToDecimal(Console.ReadLine());
+                    expenses.Add((name, amount));
+                }
                 Console.WriteLine("------ Меню ------");
                 Console.WriteLine("1. Вывод данных ");
                 Console.WriteLine("2. Статистика (среднее, максимальное, минимальное, сумма) ");
@@ -39,6 +50,14 @@ namespace _3ISIP224_Kadrgaliev
                 {
                     case 1:
                         Console.WriteLine("Вы выбрали вывод данных");
+                        Console.WriteLine();
+                        Console.WriteLine("Список трат:");
+                        for (int i = 0; i < expenses.Count; i++)
+                        {
+                            Console.WriteLine(
+                                $"{i + 1}. {expenses[i].Name} — " +
+                                $"{expenses[i].Amount:F2} руб.");
+                        }
                         break;
                     case 2:
                         Console.WriteLine("Вы выбрали статистику");
@@ -59,6 +78,7 @@ namespace _3ISIP224_Kadrgaliev
                         Console.WriteLine("Неверный выбор. Попробуйте снова.");
                         break;
                 }
+               
             }
         }
     }
