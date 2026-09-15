@@ -6,6 +6,13 @@ using System.Threading.Tasks;
 
 namespace _3ISIP224_Kadrgaliev
 {
+    enum Category
+    {
+        Food,
+        Electronics,
+        Clothes
+    }
+
     class Product
     {
         private static int nextID = 1;
@@ -14,6 +21,16 @@ namespace _3ISIP224_Kadrgaliev
         public decimal Price { get; set; }
         public int Quantity { get; set; }
         public Category ProductCategory { get; set; }
+        public bool InStock => Quantity > 0;
+
+        public Product(string name, decimal price, int quantity, Category category)
+        {
+            ID = nextID++;
+            Name = name;
+            Price = price;
+            Quantity = quantity;
+            ProductCategory = category;
+        }
     }
 
     internal class Program
