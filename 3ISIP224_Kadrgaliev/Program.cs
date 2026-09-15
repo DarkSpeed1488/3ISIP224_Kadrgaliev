@@ -46,6 +46,7 @@ namespace _3ISIP224_Kadrgaliev
             products.Add(new Product("Телефон", 35000, 5, Category.Электроника));
             products.Add(new Product("Наушники", 5000, 13, Category.Электроника));
             products.Add(new Product("Футболка", 1500, 12, Category.Одежда));
+            AddProduct(products);
             ShowAllProducts(products);
         }
         static void ShowInfo(Product product)
@@ -70,6 +71,64 @@ namespace _3ISIP224_Kadrgaliev
             {
                 ShowInfo(product);
             }
+        }
+
+        static Category ChooseCategory()
+        {
+            while (true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("Категории:");
+                Console.WriteLine("1. Еда");
+                Console.WriteLine("2. Электроника");
+                Console.WriteLine("3. Одежда");
+                Console.Write("Выберите категорию: ");
+                if (int.TryParse(Console.ReadLine(), out int number))
+                {
+                    if (number >= 1 && number <= 3)
+                    {
+                        return (Category)(number - 1);
+                    }
+                }
+                Console.WriteLine("Неверная категория.");
+            }
+        }
+
+        static void AddProduct(List<Product> products)
+        {
+            Console.Write("Введите название товара: ");
+            string name = Console.ReadLine();
+
+            while (string.IsNullOrWhiteSpace(name))
+            {
+                Console.WriteLine("Название не может быть пустым.");
+                Console.Write("Введите название товара: ");
+                name = Console.ReadLine();
+            }
+            decimal price;
+            while (true)
+            {
+                Console.Write("Введите цену: ");
+                if (decimal.TryParse(Console.ReadLine(), out price) && price >= 0)
+                {
+                    break;
+                }
+                Console.WriteLine("Введите корректную цену.");
+            }
+            int quantity;
+            while (true)
+            {
+                Console.Write("Введите количество: ");
+                if (int.TryParse(Console.ReadLine(), out quantity) && quantity >= 0)
+                {
+                    break;
+                }
+                Console.WriteLine("Количество не может быть отрицательным.");
+            }
+            Category category = ChooseCategory();
+            Product product = new Product(name, price, quantity, category);
+            products.Add(product);
+            Console.WriteLine($"Товар добавлен. Его код: {product.ID}");
         }
     }
 }
