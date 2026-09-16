@@ -46,8 +46,7 @@ namespace _3ISIP224_Kadrgaliev
             products.Add(new Product("Телефон", 35000, 5, Category.Электроника));
             products.Add(new Product("Наушники", 5000, 13, Category.Электроника));
             products.Add(new Product("Футболка", 1500, 12, Category.Одежда));
-            AddProduct(products);
-            ShowAllProducts(products);
+            SearchProduct(products);
         }
         static void ShowInfo(Product product)
         {
@@ -77,7 +76,6 @@ namespace _3ISIP224_Kadrgaliev
         {
             while (true)
             {
-                Console.WriteLine();
                 Console.WriteLine("Категории:");
                 Console.WriteLine("1. Еда");
                 Console.WriteLine("2. Электроника");
@@ -98,7 +96,6 @@ namespace _3ISIP224_Kadrgaliev
         {
             Console.Write("Введите название товара: ");
             string name = Console.ReadLine();
-
             while (string.IsNullOrWhiteSpace(name))
             {
                 Console.WriteLine("Название не может быть пустым.");
@@ -129,6 +126,36 @@ namespace _3ISIP224_Kadrgaliev
             Product product = new Product(name, price, quantity, category);
             products.Add(product);
             Console.WriteLine($"Товар добавлен. Его код: {product.ID}");
+        }
+        static void SearchProduct(List<Product> products)
+        {
+            Console.Write("Введите код товара: ");
+            if (!int.TryParse(Console.ReadLine(), out int ID))
+            {
+                Console.WriteLine("Некорректный код.");
+                return;
+            }
+            Console.Write("Введите название товара: ");
+            string name = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                Console.WriteLine("Название не может быть пустым.");
+                return;
+            }
+            Category category = ChooseCategory();
+            bool found = false;
+            foreach (Product product in products)
+            {
+                if (product.ID == ID && product.Name.ToLower() == name.ToLower() && product.ProductCategory == category)
+                {
+                    ShowInfo(product);
+                    found = true;
+                }
+            }
+            if (!found)
+            {
+                Console.WriteLine("Товар не найден.");
+            }
         }
     }
 }
