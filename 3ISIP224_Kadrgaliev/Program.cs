@@ -34,7 +34,6 @@ namespace _3ISIP224_Kadrgaliev
 
     }
 
-
     internal class Program
     {
         static void Main(string[] args)
@@ -43,10 +42,11 @@ namespace _3ISIP224_Kadrgaliev
 
             products.Add(new Product("Хлеб", 87, 33, Category.Еда));
             products.Add(new Product("Молоко", 117, 41, Category.Еда));
-            products.Add(new Product("Телефон", 35000, 5, Category.Электроника));
+            products.Add(new Product("Телефон", 35000, 0, Category.Электроника));
             products.Add(new Product("Наушники", 5000, 13, Category.Электроника));
             products.Add(new Product("Футболка", 1500, 12, Category.Одежда));
-            SearchProduct(products);
+            RemoveProduct(products);
+            ShowAllProducts(products);
         }
         static void ShowInfo(Product product)
         {
@@ -167,6 +167,23 @@ namespace _3ISIP224_Kadrgaliev
                 }
             }
             return null;
+        }
+        static void RemoveProduct(List<Product> products)
+        {
+            Console.Write("Введите код товара для удаления: ");
+            if (!int.TryParse(Console.ReadLine(), out int ID))
+            {
+                Console.WriteLine("Некорректный код.");
+                return;
+            }
+            Product product = FindByCode(products, ID);
+            if (product == null)
+            {
+                Console.WriteLine("Товар с таким кодом не найден.");
+                return;
+            }
+            products.Remove(product);
+            Console.WriteLine($"Товар {product.Name} удалён.");
         }
     }
 }
