@@ -157,5 +157,16 @@ namespace _3ISIP224_Kadrgaliev
                 Console.WriteLine("Товар не найден.");
             }
         }
+        static Product FindByCode(List<Product> products, int ID)
+        {
+            foreach (Product product in products)
+            {
+                if (product.ID == ID)
+                {
+                    return product;
+                }
+            }
+            return null;
+        }
     }
 }
