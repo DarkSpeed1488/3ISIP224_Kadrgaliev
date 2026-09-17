@@ -42,10 +42,10 @@ namespace _3ISIP224_Kadrgaliev
 
             products.Add(new Product("Хлеб", 87, 33, Category.Еда));
             products.Add(new Product("Молоко", 117, 41, Category.Еда));
-            products.Add(new Product("Телефон", 35000, 0, Category.Электроника));
+            products.Add(new Product("Телефон", 35000, 13, Category.Электроника));
             products.Add(new Product("Наушники", 5000, 13, Category.Электроника));
             products.Add(new Product("Футболка", 1500, 12, Category.Одежда));
-            RemoveProduct(products);
+            OrderProduct(products);
             ShowAllProducts(products);
         }
         static void ShowInfo(Product product)
@@ -184,6 +184,35 @@ namespace _3ISIP224_Kadrgaliev
             }
             products.Remove(product);
             Console.WriteLine($"Товар {product.Name} удалён.");
+        }
+
+        static void OrderProduct(List<Product> products)
+        {
+            Console.Write("Введите код товара для поставки: ");
+            if (!int.TryParse(Console.ReadLine(), out int ID))
+            {
+                Console.WriteLine("Некорректный код.");
+                return;
+            }
+            Product product = FindByCode(products, ID);
+            if (product == null)
+            {
+                Console.WriteLine("Товар с таким кодом не найден.");
+                return;
+            }
+            int quantity;
+            while (true)
+            {
+                Console.Write("Введите количество товара для поставки: ");
+                if (int.TryParse(Console.ReadLine(), out quantity) && quantity > 0)
+                {
+                    break;
+                }
+                Console.WriteLine("Количество должно быть больше нуля.");
+            }
+            product.Quantity += quantity;
+            Console.WriteLine("Поставка выполнена.");
+            Console.WriteLine($"Теперь товара {product.Name}: {product.Quantity}");
         }
     }
 }
