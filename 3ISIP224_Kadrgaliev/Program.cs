@@ -45,8 +45,55 @@ namespace _3ISIP224_Kadrgaliev
             products.Add(new Product("Телефон", 35000, 13, Category.Электроника));
             products.Add(new Product("Наушники", 5000, 13, Category.Электроника));
             products.Add(new Product("Футболка", 1500, 12, Category.Одежда));
-            OrderProduct(products);
-            ShowAllProducts(products);
+            while (true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("===== УЧЁТ ТОВАРОВ =====");
+                Console.WriteLine("1. Показать все товары");
+                Console.WriteLine("2. Добавить товар");
+                Console.WriteLine("3. Удалить товар");
+                Console.WriteLine("4. Заказать поставку");
+                Console.WriteLine("5. Продать товар");
+                Console.WriteLine("6. Поиск товара");
+                Console.WriteLine("0. Выход");
+                Console.Write("Выберите действие: ");
+
+                string choice = Console.ReadLine();
+
+                switch (choice)
+                {
+                    case "1":
+                        ShowAllProducts(products);
+                        break;
+
+                    case "2":
+                        AddProduct(products);
+                        break;
+
+                    case "3":
+                        RemoveProduct(products);
+                        break;
+
+                    case "4":
+                        OrderProduct(products);
+                        break;
+
+                    case "5":
+                        SellProduct(products);
+                        break;
+
+                    case "6":
+                        SearchProduct(products);
+                        break;
+
+                    case "0":
+                        return;
+
+                    default:
+                        Console.WriteLine("Неверная команда.");
+                        break;
+                }
+            }
         }
         static void ShowInfo(Product product)
         {
@@ -213,6 +260,46 @@ namespace _3ISIP224_Kadrgaliev
             product.Quantity += quantity;
             Console.WriteLine("Поставка выполнена.");
             Console.WriteLine($"Теперь товара {product.Name}: {product.Quantity}");
+        }
+
+        static void SellProduct(List<Product> products)
+        {
+            Console.Write("Введите код товара для продажи: ");
+            if (!int.TryParse(Console.ReadLine(), out int ID))
+            {
+                Console.WriteLine("Некорректный код.");
+                return;
+            }
+            Product product = FindByCode(products, ID);
+            if (product == null)
+            {
+                Console.WriteLine("Товар с таким кодом не найден.");
+                return;
+            }
+            if (!product.InStock)
+            {
+                Console.WriteLine("Товара нет на складе.");
+                return;
+            }
+            int quantity;
+            while (true)
+            {
+                Console.Write("Введите количество товара для продажи: ");
+                if (int.TryParse(Console.ReadLine(), out quantity) && quantity > 0)
+                {
+                    break;
+                }
+                Console.WriteLine("Введите корректное количество.");
+            }
+            if (quantity > product.Quantity)
+            {
+                Console.WriteLine("Недостаточно товара на складе.");
+                Console.WriteLine($"Доступно: {product.Quantity}");
+                return;
+            }
+            product.Quantity -= quantity;
+            Console.WriteLine("Товар продан.");
+            Console.WriteLine($"Осталось товара {product.Name}: {product.Quantity}");
         }
     }
 }
