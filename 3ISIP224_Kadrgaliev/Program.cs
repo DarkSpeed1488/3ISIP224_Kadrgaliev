@@ -12,7 +12,6 @@ namespace _3ISIP224_Kadrgaliev
         Электроника,
         Одежда
     }
-
     class Product
     {
         private static int nextID = 1;
@@ -22,7 +21,6 @@ namespace _3ISIP224_Kadrgaliev
         public int Quantity { get; set; }
         public Category ProductCategory { get; set; }
         public bool InStock => Quantity > 0;
-
         public Product(string name, decimal price, int quantity, Category category)
         {
             ID = nextID++;
@@ -31,15 +29,25 @@ namespace _3ISIP224_Kadrgaliev
             Quantity = quantity;
             ProductCategory = category;
         }
-
     }
-
+    class Sale
+    {
+        public Product Product { get; set; }
+        public int Quantity { get; set; }
+        public decimal TotalPrice { get; set; }
+        public Sale(Product product, int quantity)
+        {
+            Product = product;
+            Quantity = quantity;
+            TotalPrice = product.Price * quantity;
+        }
+    }
     internal class Program
     {
         static void Main(string[] args)
         {
             List<Product> products = new List<Product>();
-
+            Stack<Sale> salesHistory = new Stack<Sale>();
             products.Add(new Product("Хлеб", 87, 33, Category.Еда));
             products.Add(new Product("Молоко", 117, 41, Category.Еда));
             products.Add(new Product("Телефон", 35000, 13, Category.Электроника));
@@ -47,7 +55,6 @@ namespace _3ISIP224_Kadrgaliev
             products.Add(new Product("Футболка", 1500, 12, Category.Одежда));
             while (true)
             {
-                Console.WriteLine();
                 Console.WriteLine("===== УЧЁТ ТОВАРОВ =====");
                 Console.WriteLine("1. Показать все товары");
                 Console.WriteLine("2. Добавить товар");
@@ -55,40 +62,43 @@ namespace _3ISIP224_Kadrgaliev
                 Console.WriteLine("4. Заказать поставку");
                 Console.WriteLine("5. Продать товар");
                 Console.WriteLine("6. Поиск товара");
+                Console.WriteLine("7. История продаж");
+                Console.WriteLine("8. Отменить последнюю продажу");
+                Console.WriteLine("9. Отчёт о продажах");
                 Console.WriteLine("0. Выход");
                 Console.Write("Выберите действие: ");
-
                 string choice = Console.ReadLine();
-
                 switch (choice)
                 {
                     case "1":
                         ShowAllProducts(products);
                         break;
-
                     case "2":
                         AddProduct(products);
                         break;
-
                     case "3":
                         RemoveProduct(products);
                         break;
-
                     case "4":
                         OrderProduct(products);
                         break;
-
                     case "5":
-                        SellProduct(products);
+                        SellProduct(products, salesHistory);
                         break;
-
                     case "6":
                         SearchProduct(products);
                         break;
-
+                    case "7":
+                        ShowSalesHistory(salesHistory);
+                        break;
+                    case "8":
+                        CancelLastSale(salesHistory);
+                        break;
+                    case "9":
+                        SalesReport(salesHistory);
+                        break;
                     case "0":
                         return;
-
                     default:
                         Console.WriteLine("Неверная команда.");
                         break;
@@ -105,7 +115,6 @@ namespace _3ISIP224_Kadrgaliev
             Console.WriteLine($"Категория: {product.ProductCategory}");
             Console.WriteLine();
         }
-
         static void ShowAllProducts(List<Product> products)
         {
             if (products.Count == 0)
@@ -118,7 +127,6 @@ namespace _3ISIP224_Kadrgaliev
                 ShowInfo(product);
             }
         }
-
         static Category ChooseCategory()
         {
             while (true)
@@ -138,7 +146,6 @@ namespace _3ISIP224_Kadrgaliev
                 Console.WriteLine("Неверная категория.");
             }
         }
-
         static void AddProduct(List<Product> products)
         {
             Console.Write("Введите название товара: ");
@@ -193,7 +200,9 @@ namespace _3ISIP224_Kadrgaliev
             bool found = false;
             foreach (Product product in products)
             {
-                if (product.ID == ID && product.Name.ToLower() == name.ToLower() && product.ProductCategory == category)
+                if (product.ID == ID &&
+                    product.Name.ToLower() == name.ToLower() &&
+                    product.ProductCategory == category)
                 {
                     ShowInfo(product);
                     found = true;
@@ -232,7 +241,6 @@ namespace _3ISIP224_Kadrgaliev
             products.Remove(product);
             Console.WriteLine($"Товар {product.Name} удалён.");
         }
-
         static void OrderProduct(List<Product> products)
         {
             Console.Write("Введите код товара для поставки: ");
@@ -261,8 +269,7 @@ namespace _3ISIP224_Kadrgaliev
             Console.WriteLine("Поставка выполнена.");
             Console.WriteLine($"Теперь товара {product.Name}: {product.Quantity}");
         }
-
-        static void SellProduct(List<Product> products)
+        static void SellProduct(List<Product> products, Stack<Sale> salesHistory)
         {
             Console.Write("Введите код товара для продажи: ");
             if (!int.TryParse(Console.ReadLine(), out int ID))
@@ -298,8 +305,58 @@ namespace _3ISIP224_Kadrgaliev
                 return;
             }
             product.Quantity -= quantity;
+            salesHistory.Push(new Sale(product, quantity));
             Console.WriteLine("Товар продан.");
             Console.WriteLine($"Осталось товара {product.Name}: {product.Quantity}");
+        }
+        static void ShowSalesHistory(Stack<Sale> salesHistory)
+        {
+            if (salesHistory.Count == 0)
+            {
+                Console.WriteLine("История продаж пуста.");
+                return;
+            }
+            Console.WriteLine("===== ИСТОРИЯ ПРОДАЖ =====");
+            foreach (Sale sale in salesHistory)
+            {
+                Console.WriteLine($"Товар: {sale.Product.Name}");
+                Console.WriteLine($"Количество: {sale.Quantity}");
+                Console.WriteLine($"Сумма: {sale.TotalPrice} руб.");
+                Console.WriteLine();
+            }
+        }
+        static void CancelLastSale(Stack<Sale> salesHistory)
+        {
+            if (salesHistory.Count == 0)
+            {
+                Console.WriteLine("Нет продаж для отмены.");
+                return;
+            }
+            Sale lastSale = salesHistory.Pop();
+            lastSale.Product.Quantity += lastSale.Quantity;
+            Console.WriteLine($"Последняя продажа товара {lastSale.Product.Name} отменена.");
+            Console.WriteLine($"На склад возвращено: {lastSale.Quantity} шт.");
+        }
+        static void SalesReport(Stack<Sale> salesHistory)
+        {
+            if (salesHistory.Count == 0)
+            {
+                Console.WriteLine("Продаж ещё не было.");
+                return;
+            }
+            decimal totalSum = 0;
+            Console.WriteLine("===== ОТЧЁТ О ПРОДАЖАХ =====");
+            foreach (Sale sale in salesHistory)
+            {
+                Console.WriteLine($"Товар: {sale.Product.Name}");
+                Console.WriteLine($"Продано: {sale.Quantity} шт.");
+                Console.WriteLine($"Сумма продажи: {sale.TotalPrice} руб.");
+                Console.WriteLine();
+
+                totalSum += sale.TotalPrice;
+            }
+
+            Console.WriteLine($"Общая сумма продаж: {totalSum} руб.");
         }
     }
 }
