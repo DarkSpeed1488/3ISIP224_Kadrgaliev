@@ -8,8 +8,22 @@ namespace _3ISIP224_Kadrgaliev
 {
     public class TextStat
     {
-        public string Text { get; set; }
-
+        private string text;
+        public string Text
+        {
+            get
+            {
+                return text;
+            }
+            set
+            {
+                if (value == null || value.Length < 100)
+                {
+                    throw new ArgumentException("Текст должен содержать минимум 100 символов.");
+                }
+                text = value;
+            }
+        }
         public int WordCount { get; set; }
         public int SentenceCount { get; set; }
         
