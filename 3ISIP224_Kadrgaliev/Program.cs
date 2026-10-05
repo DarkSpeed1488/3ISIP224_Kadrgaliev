@@ -10,6 +10,7 @@ namespace _3ISIP224_Kadrgaliev
     {
         static void Main(string[] args)
         {
+
         }
     }
 }
