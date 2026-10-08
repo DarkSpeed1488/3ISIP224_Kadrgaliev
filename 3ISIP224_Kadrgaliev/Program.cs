@@ -72,6 +72,7 @@ namespace _3ISIP224_Kadrgaliev
                 Console.WriteLine("8. Отсортировать по году");
                 Console.WriteLine("9. Самые дорогие и дешёвые книги");
                 Console.WriteLine("10. Количество книг по авторам");
+                Console.WriteLine("11. Вставить блок книг");
                 Console.WriteLine("0. Выход");
                 Console.Write("Выберите команду: ");
                 string input = Console.ReadLine();
@@ -81,9 +82,9 @@ namespace _3ISIP224_Kadrgaliev
                     return;
                 }
                 int command;
-                if (!int.TryParse(input, out command) || command < 0 || command > 10)
+                if (!int.TryParse(input, out command) || command < 0 || command > 11)
                 {
-                    Console.WriteLine("Введите целое число от 0 до 10.");
+                    Console.WriteLine("Введите целое число от 0 до 11.");
                     continue;
                 }
                 Console.WriteLine();
@@ -100,6 +101,7 @@ namespace _3ISIP224_Kadrgaliev
                     case 8: SortByYear(); break;
                     case 9: ShowPriceExtremes(); break;
                     case 10: GroupByAuthors(); break;
+                    case 11: ImportBooks(); break;
                 }
             }
         }
@@ -347,6 +349,72 @@ namespace _3ISIP224_Kadrgaliev
             var groups = books.GroupBy(b => b.Author, StringComparer.CurrentCultureIgnoreCase).OrderBy(g => g.Key, StringComparer.CurrentCultureIgnoreCase);
             Console.WriteLine("Количество книг каждого автора:");
             foreach (var group in groups) Console.WriteLine(group.Key + ": " + group.Count());
+        }
+        private static void ImportBooks()
+        {
+            Console.WriteLine("Вставьте строки в формате: Название;Автор;Жанр;Год;Цена");
+            Console.WriteLine("Жанры: Роман, Детектив, Фантастика (регистр не важен).");
+            Console.WriteLine("Цена вводится так же, как при обычном добавлении книги.");
+            Console.WriteLine("Завершите ввод пустой строкой.");
+            int added = 0;
+            int rejected = 0;
+            int lineNumber = 0;
+            while (true)
+            {
+                string line = Console.ReadLine();
+                if (line == null)
+                {
+                    isRunning = false;
+                    break;
+                }
+                if (string.IsNullOrWhiteSpace(line)) break;
+                lineNumber++;
+                string[] fields = line.Split(';');
+                if (fields.Length != 5)
+                {
+                    rejected++;
+                    Console.WriteLine("Строка " + lineNumber + ": нужно ровно 5 полей, разделённых точкой с запятой.");
+                    continue;
+                }
+                string title = fields[0].Trim();
+                string author = fields[1].Trim();
+                if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(author))
+                {
+                    rejected++;
+                    Console.WriteLine("Строка " + lineNumber + ": название и автор не могут быть пустыми.");
+                    continue;
+                }
+                Genre genre;
+                switch (fields[2].Trim().ToLowerInvariant())
+                {
+                    case "роман": genre = Genre.Novel; break;
+                    case "детектив": genre = Genre.Detective; break;
+                    case "фантастика": genre = Genre.Fantasy; break;
+                    default:
+                        rejected++;
+                        Console.WriteLine("Строка " + lineNumber + ": жанр должен быть Роман, Детектив или Фантастика.");
+                        continue;
+                }
+                int year;
+                if (!int.TryParse(fields[3].Trim(), out year) || year < 1 || year > DateTime.Now.Year)
+                {
+                    rejected++;
+                    Console.WriteLine("Строка " + lineNumber + ": год должен быть целым числом от 1 до " + DateTime.Now.Year + ".");
+                    continue;
+                }
+                decimal price;
+                if (!decimal.TryParse(fields[4].Trim(), out price) || price < 0 || price > 1000000000m || decimal.Round(price, 2) != price)
+                {
+                    rejected++;
+                    Console.WriteLine("Строка " + lineNumber + ": цена должна быть от 0 до 1000000000 и иметь не более двух знаков после запятой.");
+                    continue;
+                }
+                Book book = new Book(title, author, genre, year, price);
+                books.Add(book);
+                added++;
+                Console.WriteLine("Строка " + lineNumber + ": добавлена книга с ID " + book.Id);
+            }
+            Console.WriteLine("Импорт завершён. Добавлено: " + added + "; ошибок: " + rejected + ".");
         }
     }
 }
