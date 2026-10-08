@@ -36,9 +36,27 @@ namespace _3ISIP224_Kadrgaliev
             Price = price;
         }
     }
+    internal class CartItem
+    {
+        public Book Book { get; private set; }
+        public int Quantity { get; private set; }
+        public decimal Total { get { return Book.Price * Quantity; } }
+        public CartItem(Book book, int quantity)
+        {
+            if (book == null) throw new ArgumentNullException("book");
+            Book = book;
+            AddQuantity(quantity);
+        }
+        public void AddQuantity(int quantity)
+        {
+            if (quantity < 1 || quantity > 1000 - Quantity) throw new ArgumentOutOfRangeException("quantity");
+            Quantity += quantity;
+        }
+    }
     internal class Program
     {
         private static readonly List<Book> books = new List<Book>();
+        private static readonly List<CartItem> cart = new List<CartItem>();
         private static bool isRunning = true;
         private static void AddTestBooks()
         {
@@ -73,6 +91,10 @@ namespace _3ISIP224_Kadrgaliev
                 Console.WriteLine("9. Самые дорогие и дешёвые книги");
                 Console.WriteLine("10. Количество книг по авторам");
                 Console.WriteLine("11. Вставить блок книг");
+                Console.WriteLine("12. Добавить книгу в корзину");
+                Console.WriteLine("13. Показать корзину и итоговую стоимость");
+                Console.WriteLine("14. Удалить книгу из корзины");
+                Console.WriteLine("15. Очистить корзину");
                 Console.WriteLine("0. Выход");
                 Console.Write("Выберите команду: ");
                 string input = Console.ReadLine();
@@ -82,9 +104,9 @@ namespace _3ISIP224_Kadrgaliev
                     return;
                 }
                 int command;
-                if (!int.TryParse(input, out command) || command < 0 || command > 11)
+                if (!int.TryParse(input, out command) || command < 0 || command > 15)
                 {
-                    Console.WriteLine("Введите целое число от 0 до 11.");
+                    Console.WriteLine("Введите целое число от 0 до 15.");
                     continue;
                 }
                 Console.WriteLine();
@@ -102,6 +124,13 @@ namespace _3ISIP224_Kadrgaliev
                     case 9: ShowPriceExtremes(); break;
                     case 10: GroupByAuthors(); break;
                     case 11: ImportBooks(); break;
+                    case 12: AddToCart(); break;
+                    case 13: ShowCart(); break;
+                    case 14: RemoveFromCart(); break;
+                    case 15:
+                        cart.Clear();
+                        Console.WriteLine("Корзина очищена.");
+                        break;
                 }
             }
         }
@@ -415,6 +444,91 @@ namespace _3ISIP224_Kadrgaliev
                 Console.WriteLine("Строка " + lineNumber + ": добавлена книга с ID " + book.Id);
             }
             Console.WriteLine("Импорт завершён. Добавлено: " + added + "; ошибок: " + rejected + ".");
+        }
+        private static void AddToCart()
+        {
+            int id;
+            while (true)
+            {
+                Console.Write("ID книги для покупки: ");
+                string input = Console.ReadLine();
+                if (input == null)
+                {
+                    isRunning = false;
+                    return;
+                }
+                if (int.TryParse(input, out id) && id >= 1 && id <= int.MaxValue) break;
+                Console.WriteLine("Введите целое число от " + 1 + " до " + int.MaxValue + ".");
+            }
+            Book book = books.FirstOrDefault(b => b.Id == id);
+            if (book == null)
+            {
+                Console.WriteLine("Книга с таким ID не найдена.");
+                return;
+            }
+            CartItem item = cart.FirstOrDefault(i => i.Book.Id == id);
+            int currentQuantity = item == null ? 0 : item.Quantity;
+            if (currentQuantity == 1000)
+            {
+                Console.WriteLine("В корзине уже 1000 экземпляров этой книги.");
+                return;
+            }
+            int quantity;
+            while (true)
+            {
+                Console.Write("Количество экземпляров для добавления: ");
+                string input = Console.ReadLine();
+                if (input == null)
+                {
+                    isRunning = false;
+                    return;
+                }
+                if (int.TryParse(input, out quantity) && quantity >= 1 && quantity <= (1000 - currentQuantity)) break;
+                Console.WriteLine("Введите целое число от " + 1 + " до " + (1000 - currentQuantity) + ".");
+            }
+            if (item == null) cart.Add(new CartItem(book, quantity));
+            else item.AddQuantity(quantity);
+            Console.WriteLine("Добавлено в корзину: " + book.Title + ", " + quantity + " шт.");
+        }
+        private static void ShowCart()
+        {
+            if (cart.Count == 0)
+            {
+                Console.WriteLine("Корзина пуста. Итоговая стоимость: 0,00 руб.");
+                return;
+            }
+            foreach (CartItem item in cart)
+            {
+                PrintBooks(new[] { item.Book });
+                Console.WriteLine("Количество: " + item.Quantity + " шт.");
+                Console.WriteLine("Стоимость позиции: " + item.Total.ToString("F2") + " руб.");
+            }
+            Console.WriteLine("Всего экземпляров: " + cart.Sum(i => (long)i.Quantity));
+            Console.WriteLine("Итоговая стоимость: " + cart.Sum(i => i.Total).ToString("F2") + " руб.");
+        }
+        private static void RemoveFromCart()
+        {
+            int id;
+            while (true)
+            {
+                Console.Write("ID книги для удаления из корзины: ");
+                string input = Console.ReadLine();
+                if (input == null)
+                {
+                    isRunning = false;
+                    return;
+                }
+                if (int.TryParse(input, out id) && id >= 1 && id <= int.MaxValue) break;
+                Console.WriteLine("Введите целое число от " + 1 + " до " + int.MaxValue + ".");
+            }
+            CartItem item = cart.FirstOrDefault(i => i.Book.Id == id);
+            if (item == null)
+            {
+                Console.WriteLine("Этой книги нет в корзине.");
+                return;
+            }
+            cart.Remove(item);
+            Console.WriteLine("Все экземпляры книги удалены из корзины.");
         }
     }
 }
