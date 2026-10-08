@@ -15,26 +15,19 @@ namespace _3ISIP224_Kadrgaliev
     internal class Book
     {
         private static int nextId = 1;
-
         public int Id { get; private set; }
         public string Title { get; private set; }
         public string Author { get; private set; }
         public Genre Genre { get; private set; }
         public int Year { get; private set; }
         public decimal Price { get; private set; }
-
         public Book(string title, string author, Genre genre, int year, decimal price)
         {
-            if (string.IsNullOrWhiteSpace(title))
-                throw new ArgumentException("Название не может быть пустым.");
-            if (string.IsNullOrWhiteSpace(author))
-                throw new ArgumentException("Автор не может быть пустым.");
-            if (!Enum.IsDefined(typeof(Genre), genre))
-                throw new ArgumentException("Выберите существующий жанр.");
-            if (year < 1 || year > DateTime.Now.Year)
-                throw new ArgumentOutOfRangeException("year");
-            if (price < 0 || price > 1000000000m)
-                throw new ArgumentOutOfRangeException("price");
+            if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Название не может быть пустым.");
+            if (string.IsNullOrWhiteSpace(author)) throw new ArgumentException("Автор не может быть пустым.");
+            if (!Enum.IsDefined(typeof(Genre), genre)) throw new ArgumentException("Выберите существующий жанр.");
+            if (year < 1 || year > DateTime.Now.Year) throw new ArgumentOutOfRangeException("year");
+            if (price < 0 || price > 1000000000m) throw new ArgumentOutOfRangeException("price");
             Id = nextId++;
             Title = title.Trim();
             Author = author.Trim();
@@ -46,7 +39,7 @@ namespace _3ISIP224_Kadrgaliev
     internal class Program
     {
         private static readonly List<Book> books = new List<Book>();
-
+        private static bool isRunning = true;
         private static void AddTestBooks()
         {
             books.Add(new Book("Мастер и Маргарита", "Михаил Булгаков", Genre.Novel, 1967, 750m));
@@ -60,8 +53,41 @@ namespace _3ISIP224_Kadrgaliev
             Console.InputEncoding = Encoding.UTF8;
             Console.OutputEncoding = Encoding.UTF8;
             AddTestBooks();
-            Console.WriteLine("Учёт книг в библиотеке");
-            PrintBooks(books);
+            RunMenu();
+            if (!isRunning) Console.WriteLine("Ввод завершён. Программа закрыта.");
+        }
+        private static void RunMenu()
+        {
+            while (isRunning)
+            {
+                Console.WriteLine("");
+                Console.WriteLine("========== БИБЛИОТЕКА ==========");
+                Console.WriteLine("1. Вывести все книги");
+                Console.WriteLine("2. Добавить книгу");
+                Console.WriteLine("3. Удалить книгу по ID");
+                Console.WriteLine("0. Выход");
+                Console.Write("Выберите команду: ");
+                string input = Console.ReadLine();
+                if (input == null)
+                {
+                    isRunning = false;
+                    return;
+                }
+                int command;
+                if (!int.TryParse(input, out command) || command < 0 || command > 3)
+                {
+                    Console.WriteLine("Введите целое число от 0 до 3.");
+                    continue;
+                }
+                Console.WriteLine();
+                switch (command)
+                {
+                    case 0: Console.WriteLine("До свидания!"); return;
+                    case 1: PrintBooks(books); break;
+                    case 2: AddBook(); break;
+                    case 3: DeleteBook(); break;
+                }
+            }
         }
         private static void PrintBooks(IEnumerable<Book> source)
         {
@@ -81,6 +107,7 @@ namespace _3ISIP224_Kadrgaliev
                 Console.WriteLine("Год издания: " + book.Year);
                 Console.WriteLine("Цена: " + book.Price.ToString("F2") + " руб.");
             }
+            Console.WriteLine();
             Console.WriteLine("Всего книг: " + result.Count);
         }
         private static string GetGenreName(Genre genre)
@@ -93,6 +120,117 @@ namespace _3ISIP224_Kadrgaliev
                 default: return "Неизвестный жанр";
             }
         }
-
+        private static void AddBook()
+        {
+            string title;
+            while (true)
+            {
+                Console.Write("Название: ");
+                title = Console.ReadLine();
+                if (title == null)
+                {
+                    isRunning = false;
+                    return;
+                }
+                if (!string.IsNullOrWhiteSpace(title))
+                {
+                    title = title.Trim();
+                    break;
+                }
+                Console.WriteLine("Значение не может быть пустым.");
+            }
+            string author;
+            while (true)
+            {
+                Console.Write("Автор: ");
+                author = Console.ReadLine();
+                if (author == null)
+                {
+                    isRunning = false;
+                    return;
+                }
+                if (!string.IsNullOrWhiteSpace(author))
+                {
+                    author = author.Trim();
+                    break;
+                }
+                Console.WriteLine("Значение не может быть пустым.");
+            }
+            foreach (Genre availableGenre in Enum.GetValues(typeof(Genre))) Console.WriteLine((int)availableGenre + " — " + GetGenreName(availableGenre));
+            int genreNumber;
+            while (true)
+            {
+                Console.Write("Номер жанра: ");
+                string input = Console.ReadLine();
+                if (input == null)
+                {
+                    isRunning = false;
+                    return;
+                }
+                if (int.TryParse(input, out genreNumber) && genreNumber >= 1 && genreNumber <= 3) break;
+                Console.WriteLine("Введите целое число от " + 1 + " до " + 3 + ".");
+            }
+            Genre genre = (Genre)genreNumber;
+            int year;
+            while (true)
+            {
+                Console.Write("Год издания: ");
+                string input = Console.ReadLine();
+                if (input == null)
+                {
+                    isRunning = false;
+                    return;
+                }
+                if (int.TryParse(input, out year) && year >= 1 && year <= DateTime.Now.Year) break;
+                Console.WriteLine("Введите целое число от " + 1 + " до " + DateTime.Now.Year + ".");
+            }
+            decimal price;
+            while (true)
+            {
+                Console.Write("Цена (руб.): ");
+                string input = Console.ReadLine();
+                if (input == null)
+                {
+                    isRunning = false;
+                    return;
+                }
+                if (decimal.TryParse(input, out price)
+                    && price >= 0
+                    && price <= 1000000000m
+                    && decimal.Round(price, 2) == price)
+                {
+                    break;
+                }
+                Console.WriteLine("Введите цену от 0 до 1000000000, не более двух знаков после запятой.");
+            }
+            Book book = new Book(title, author, genre, year, price);
+            books.Add(book);
+            Console.WriteLine("Книга добавлена. ID: " + book.Id);
+        }
+        private static void DeleteBook()
+        {
+            int id;
+            while (true)
+            {
+                Console.Write("ID книги для удаления: ");
+                string input = Console.ReadLine();
+                if (input == null)
+                {
+                    isRunning = false;
+                    return;
+                }
+                if (int.TryParse(input, out id) && id >= 1 && id <= int.MaxValue)
+                    break;
+                Console.WriteLine("Введите целое число от " + 1 + " до " + int.MaxValue + ".");
+            }
+            Book book = books.FirstOrDefault(b => b.Id == id);
+            if (book == null)
+            {
+                Console.WriteLine("Книга с таким ID не найдена.");
+                return;
+            }
+            books.Remove(book);
+            Console.WriteLine("Книга удалена: " + book.Title);
+        }
     }
 }
