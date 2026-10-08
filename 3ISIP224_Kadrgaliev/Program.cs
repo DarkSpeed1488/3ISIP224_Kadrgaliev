@@ -65,6 +65,13 @@ namespace _3ISIP224_Kadrgaliev
                 Console.WriteLine("1. Вывести все книги");
                 Console.WriteLine("2. Добавить книгу");
                 Console.WriteLine("3. Удалить книгу по ID");
+                Console.WriteLine("4. Найти по названию");
+                Console.WriteLine("5. Найти по автору");
+                Console.WriteLine("6. Найти по жанру");
+                Console.WriteLine("7. Отсортировать по названию");
+                Console.WriteLine("8. Отсортировать по году");
+                Console.WriteLine("9. Самые дорогие и дешёвые книги");
+                Console.WriteLine("10. Количество книг по авторам");
                 Console.WriteLine("0. Выход");
                 Console.Write("Выберите команду: ");
                 string input = Console.ReadLine();
@@ -74,9 +81,9 @@ namespace _3ISIP224_Kadrgaliev
                     return;
                 }
                 int command;
-                if (!int.TryParse(input, out command) || command < 0 || command > 3)
+                if (!int.TryParse(input, out command) || command < 0 || command > 10)
                 {
-                    Console.WriteLine("Введите целое число от 0 до 3.");
+                    Console.WriteLine("Введите целое число от 0 до 10.");
                     continue;
                 }
                 Console.WriteLine();
@@ -86,6 +93,13 @@ namespace _3ISIP224_Kadrgaliev
                     case 1: PrintBooks(books); break;
                     case 2: AddBook(); break;
                     case 3: DeleteBook(); break;
+                    case 4: SearchByTitle(); break;
+                    case 5: SearchByAuthor(); break;
+                    case 6: SearchByGenre(); break;
+                    case 7: SortByTitle(); break;
+                    case 8: SortByYear(); break;
+                    case 9: ShowPriceExtremes(); break;
+                    case 10: GroupByAuthors(); break;
                 }
             }
         }
@@ -231,6 +245,108 @@ namespace _3ISIP224_Kadrgaliev
             }
             books.Remove(book);
             Console.WriteLine("Книга удалена: " + book.Title);
+        }
+        private static void SearchByTitle()
+        {
+            string title;
+            while (true)
+            {
+                Console.Write("Название или его часть: ");
+                title = Console.ReadLine();
+                if (title == null)
+                {
+                    isRunning = false;
+                    return;
+                }
+                if (!string.IsNullOrWhiteSpace(title))
+                {
+                    title = title.Trim();
+                    break;
+                }
+                Console.WriteLine("Значение не может быть пустым.");
+            }
+            PrintBooks(books.Where(b => b.Title.IndexOf(title, StringComparison.OrdinalIgnoreCase) >= 0));
+        }
+        private static void SearchByAuthor()
+        {
+            string author;
+            while (true)
+            {
+                Console.Write("Имя автора или его часть: ");
+                author = Console.ReadLine();
+                if (author == null)
+                {
+                    isRunning = false;
+                    return;
+                }
+                if (!string.IsNullOrWhiteSpace(author))
+                {
+                    author = author.Trim();
+                    break;
+                }
+                Console.WriteLine("Значение не может быть пустым.");
+            }
+            PrintBooks(books.Where(b => b.Author.IndexOf(author, StringComparison.OrdinalIgnoreCase) >= 0));
+        }
+        private static void SearchByGenre()
+        {
+            foreach (Genre availableGenre in Enum.GetValues(typeof(Genre))) Console.WriteLine((int)availableGenre + " — " + GetGenreName(availableGenre));
+            int genreNumber;
+            while (true)
+            {
+                Console.Write("Номер жанра: ");
+                string input = Console.ReadLine();
+                if (input == null)
+                {
+                    isRunning = false;
+                    return;
+                }
+                if (int.TryParse(input, out genreNumber) && genreNumber >= 1 && genreNumber <= 3) break;
+                Console.WriteLine("Введите целое число от " + 1 + " до " + 3 + ".");
+            }
+            Genre genre = (Genre)genreNumber;
+            PrintBooks(books.Where(b => b.Genre == genre));
+        }
+        private static void SortByTitle()
+        {
+            List<Book> sorted = books.OrderBy(b => b.Title, StringComparer.CurrentCultureIgnoreCase).ThenBy(b => b.Id).ToList();
+            books.Clear();
+            books.AddRange(sorted);
+            Console.WriteLine("Книги отсортированы по названию:");
+            PrintBooks(books);
+        }
+        private static void SortByYear()
+        {
+            List<Book> sorted = books.OrderBy(b => b.Year).ThenBy(b => b.Id).ToList();
+            books.Clear();
+            books.AddRange(sorted);
+            Console.WriteLine("Книги отсортированы по году (от старых к новым):");
+            PrintBooks(books);
+        }
+        private static void ShowPriceExtremes()
+        {
+            if (books.Count == 0)
+            {
+                Console.WriteLine("Список книг пуст.");
+                return;
+            }
+            decimal minPrice = books.Min(b => b.Price);
+            decimal maxPrice = books.Max(b => b.Price);
+            Console.WriteLine("Самые дорогие книги:");
+            PrintBooks(books.Where(b => b.Price == maxPrice));
+            Console.WriteLine("Самые дешёвые книги:");
+            PrintBooks(books.Where(b => b.Price == minPrice));
+        }
+        private static void GroupByAuthors()
+        {
+            if (books.Count == 0)
+            {
+                Console.WriteLine("Список книг пуст.");
+                return;
+            }
+            var groups = books.GroupBy(b => b.Author, StringComparer.CurrentCultureIgnoreCase).OrderBy(g => g.Key, StringComparer.CurrentCultureIgnoreCase);
+            Console.WriteLine("Количество книг каждого автора:");
+            foreach (var group in groups) Console.WriteLine(group.Key + ": " + group.Count());
         }
     }
 }
