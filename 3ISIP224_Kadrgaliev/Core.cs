@@ -229,5 +229,18 @@ namespace _3ISIP224_Kadrgaliev
                 return string.Format("Заказ №{0} оформлен. Сумма: {1:F2} руб.", order.Id, total);
             }
         }
+        public static List<Order> GetOrders(Account account, bool newestFirst)
+        {
+            using (var database = new ShopDatabaseEntities())
+            {
+                int userId = GetUserId(database, account);
+                var orders = database.Order.Include("PickupPoint").Include("OrderProduct.Product").Where(order => order.UserId == userId);
+                if (newestFirst)
+                {
+                    return orders.OrderByDescending(order => order.CreatedAt).ThenByDescending(order => order.Id).ToList();
+                }
+                return orders.OrderBy(order => order.CreatedAt).ThenBy(order => order.Id).ToList();
+            }
+        }
     }
 }

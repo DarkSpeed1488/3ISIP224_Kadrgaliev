@@ -39,6 +39,7 @@ namespace _3ISIP224_Kadrgaliev
                     Console.WriteLine("5 — Удалить товар из корзины");
                     Console.WriteLine("6 — Купить один товар из каталога (1 шт.)");
                     Console.WriteLine("7 — Купить всю корзину");
+                    Console.WriteLine("8 — Мои заказы");
                 }
                 Console.WriteLine("0 — Закрыть программу");
                 Console.Write("Выберите действие: ");
@@ -93,17 +94,9 @@ namespace _3ISIP224_Kadrgaliev
                         {
                             foreach (var item in cart)
                             {
-                                Console.WriteLine(
-                                    "{0}. {1} — {2} шт. × {3:F2} руб.",
-                                    item.ProductId,
-                                    item.Product.ProductName,
-                                    item.Quantity,
-                                    item.Product.Price);
+                                Console.WriteLine("{0}. {1} — {2} шт. × {3:F2} руб.", item.ProductId, item.Product.ProductName, item.Quantity, item.Product.Price);
                             }
-
-                            Console.WriteLine(
-                                "Итого: {0:F2} руб.",
-                                cart.Sum(item => item.Quantity * item.Product.Price));
+                            Console.WriteLine("Итого: {0:F2} руб.", cart.Sum(item => item.Quantity * item.Product.Price));
                         }
                     }
                     else if (choice == "4" && currentAccount != null)
@@ -155,6 +148,33 @@ namespace _3ISIP224_Kadrgaliev
                         if (pickupPointId != 0)
                         {
                             Console.WriteLine(Core.BuyCart(currentAccount, pickupPointId));
+                        }
+                    }
+                    else if (choice == "8" && currentAccount != null)
+                    {
+                        Console.WriteLine("1 — Сначала новые");
+                        Console.WriteLine("2 — Сначала старые");
+                        Console.Write("Выберите сортировку: ");
+                        string sortChoice = Console.ReadLine();
+                        if (sortChoice != "1" && sortChoice != "2")
+                        {
+                            Console.WriteLine("Выберите 1 или 2.");
+                        }
+                        else
+                        {
+                            var orders = Core.GetOrders(currentAccount, sortChoice == "1");
+                            if (orders.Count == 0) Console.WriteLine("У вас пока нет заказов.");
+                            foreach (var order in orders)
+                            {
+                                DateTime localDate = DateTime.SpecifyKind(order.CreatedAt, DateTimeKind.Utc).ToLocalTime();
+                                Console.WriteLine("\nЗаказ №{0} от {1:dd.MM.yyyy HH:mm:ss}", order.Id, localDate);
+                                Console.WriteLine("ПВЗ: {0}, {1}", order.PickupPoint.PickupPointName, order.PickupPoint.Address);
+                                foreach (var item in order.OrderProduct.OrderBy(item => item.Id))
+                                {
+                                    Console.WriteLine("{0} — {1} шт. × {2:F2} руб.", item.Product.ProductName, item.Quantity, item.PriceAtPurchase);
+                                }
+                                Console.WriteLine("Итого: {0:F2} руб.", order.OrderProduct.Sum(item => item.Quantity * item.PriceAtPurchase));
+                            }
                         }
                     }
                     else if (choice != "0" && choice != null)
