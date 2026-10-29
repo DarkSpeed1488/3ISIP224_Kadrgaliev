@@ -77,5 +77,71 @@ namespace _3ISIP224_Kadrgaliev
             if (userName.Length == 0 || string.IsNullOrWhiteSpace(password)) return null;
             return ReadAccounts().FirstOrDefault(account => string.Equals(account.UserName, userName, StringComparison.OrdinalIgnoreCase) && account.Password == password);
         }
+        private static int GetUserId(ShopDatabaseEntities database, Account account)
+        {
+            if (account == null) throw new InvalidOperationException("Сначала войдите в аккаунт.");
+            var user = database.User.FirstOrDefault(item => item.UserName == account.UserName);
+            if (user == null)
+            {
+                user = new User
+                {
+                    UserName = account.UserName,
+                    Password = account.Password,
+                    CreatedAt = DateTime.UtcNow
+                };
+                database.User.Add(user);
+                database.SaveChanges();
+            }
+            else if (user.Password != account.Password)
+            {
+                throw new InvalidOperationException("Аккаунт JSON не совпадает с записью БД для этого ника.");
+            }
+            return user.Id;
+        }
+        public static string AddToCart(Account account, int productId)
+        {
+            using (var database = new ShopDatabaseEntities())
+            {
+                int userId = GetUserId(database, account);
+                var product = database.Product.FirstOrDefault(item => item.Id == productId && item.IsActive);
+                if (product == null) return "Товар не найден или недоступен.";
+                var cartProduct = database.CartProduct.FirstOrDefault(item => item.UserId == userId && item.ProductId == productId);
+                if (cartProduct == null)
+                {
+                    database.CartProduct.Add(new CartProduct
+                    {
+                        UserId = userId,
+                        ProductId = productId,
+                        Quantity = 1
+                    });
+                }
+                else
+                {
+                    cartProduct.Quantity = checked(cartProduct.Quantity + 1);
+                }
+                database.SaveChanges();
+                return "Товар добавлен в корзину.";
+            }
+        }
+        public static List<CartProduct> GetCart(Account account)
+        {
+            using (var database = new ShopDatabaseEntities())
+            {
+                int userId = GetUserId(database, account);
+                return database.CartProduct.Include("Product").Where(item => item.UserId == userId).OrderBy(item => item.Id).ToList();
+            }
+        }
+        public static string RemoveFromCart(Account account, int productId)
+        {
+            using (var database = new ShopDatabaseEntities())
+            {
+                int userId = GetUserId(database, account);
+                var cartProduct = database.CartProduct.FirstOrDefault(item => item.UserId == userId && item.ProductId == productId);
+                if (cartProduct == null) return "Этого товара нет в вашей корзине.";
+                database.CartProduct.Remove(cartProduct);
+                database.SaveChanges();
+                return "Товар удалён из корзины.";
+            }
+        }
     }
 }

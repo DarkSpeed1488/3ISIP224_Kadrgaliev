@@ -34,6 +34,9 @@ namespace _3ISIP224_Kadrgaliev
                 else
                 {
                     Console.WriteLine("2 — Выйти из аккаунта");
+                    Console.WriteLine("3 — Моя корзина");
+                    Console.WriteLine("4 — Добавить товар в корзину");
+                    Console.WriteLine("5 — Удалить товар из корзины");
                 }
                 Console.WriteLine("0 — Закрыть программу");
                 Console.Write("Выберите действие: ");
@@ -75,6 +78,57 @@ namespace _3ISIP224_Kadrgaliev
                         currentAccount = accountService.Login(userName, password);
                         if (currentAccount == null) Console.WriteLine("Неверный ник или пароль.");
                         else Console.WriteLine("Вход выполнен!");
+                    }
+                    else if (choice == "3" && currentAccount != null)
+                    {
+                        var cart = Core.GetCart(currentAccount);
+
+                        if (cart.Count == 0)
+                        {
+                            Console.WriteLine("Корзина пустая.");
+                        }
+                        else
+                        {
+                            foreach (var item in cart)
+                            {
+                                Console.WriteLine(
+                                    "{0}. {1} — {2} шт. × {3:F2} руб.",
+                                    item.ProductId,
+                                    item.Product.ProductName,
+                                    item.Quantity,
+                                    item.Product.Price);
+                            }
+
+                            Console.WriteLine(
+                                "Итого: {0:F2} руб.",
+                                cart.Sum(item => item.Quantity * item.Product.Price));
+                        }
+                    }
+                    else if (choice == "4" && currentAccount != null)
+                    {
+                        Console.Write("Введите Id товара из каталога: ");
+                        int productId;
+                        if (int.TryParse(Console.ReadLine(), out productId))
+                        {
+                            Console.WriteLine(Core.AddToCart(currentAccount, productId));
+                        }
+                        else
+                        {
+                            Console.WriteLine("Введите целое число.");
+                        }
+                    }
+                    else if (choice == "5" && currentAccount != null)
+                    {
+                        Console.Write("Введите Id товара из корзины: ");
+                        int productId;
+                        if (int.TryParse(Console.ReadLine(), out productId))
+                        {
+                            Console.WriteLine(Core.RemoveFromCart(currentAccount, productId));
+                        }
+                        else
+                        {
+                            Console.WriteLine("Введите целое число.");
+                        }
                     }
                     else if (choice != "0" && choice != null)
                     {
