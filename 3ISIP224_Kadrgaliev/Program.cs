@@ -37,6 +37,8 @@ namespace _3ISIP224_Kadrgaliev
                     Console.WriteLine("3 — Моя корзина");
                     Console.WriteLine("4 — Добавить товар в корзину");
                     Console.WriteLine("5 — Удалить товар из корзины");
+                    Console.WriteLine("6 — Купить один товар из каталога (1 шт.)");
+                    Console.WriteLine("7 — Купить всю корзину");
                 }
                 Console.WriteLine("0 — Закрыть программу");
                 Console.Write("Выберите действие: ");
@@ -130,6 +132,31 @@ namespace _3ISIP224_Kadrgaliev
                             Console.WriteLine("Введите целое число.");
                         }
                     }
+                    else if (choice == "6" && currentAccount != null)
+                    {
+                        Console.Write("Введите Id товара из каталога: ");
+                        int productId;
+                        if (int.TryParse(Console.ReadLine(), out productId))
+                        {
+                            int pickupPointId = ChoosePickupPoint();
+                            if (pickupPointId != 0)
+                            {
+                                Console.WriteLine(Core.BuyProduct(currentAccount, productId, pickupPointId));
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Введите целое число.");
+                        }
+                    }
+                    else if (choice == "7" && currentAccount != null)
+                    {
+                        int pickupPointId = ChoosePickupPoint();
+                        if (pickupPointId != 0)
+                        {
+                            Console.WriteLine(Core.BuyCart(currentAccount, pickupPointId));
+                        }
+                    }
                     else if (choice != "0" && choice != null)
                     {
                         Console.WriteLine("Такого пункта нет.");
@@ -145,6 +172,27 @@ namespace _3ISIP224_Kadrgaliev
                     Console.ReadKey(true);
                 }
             } while (choice != "0" && choice != null);
+        }
+        static int ChoosePickupPoint()
+        {
+            var points = Core.GetPickupPoints();
+            if (points.Count == 0)
+            {
+                Console.WriteLine("Доступных ПВЗ нет.");
+                return 0;
+            }
+            foreach (var point in points)
+            {
+                Console.WriteLine("{0}. {1} — {2}", point.Id, point.PickupPointName, point.Address);
+            }
+            Console.Write("Введите Id ПВЗ (0 — отмена): ");
+            int pickupPointId;
+            if (int.TryParse(Console.ReadLine(), out pickupPointId) && points.Any(point => point.Id == pickupPointId))
+            {
+                return pickupPointId;
+            }
+            Console.WriteLine("ПВЗ не выбран.");
+            return 0;
         }
     }
 }

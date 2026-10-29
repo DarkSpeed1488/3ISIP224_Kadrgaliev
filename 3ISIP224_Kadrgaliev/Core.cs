@@ -143,5 +143,91 @@ namespace _3ISIP224_Kadrgaliev
                 return "Товар удалён из корзины.";
             }
         }
+        public static List<PickupPoint> GetPickupPoints()
+        {
+            using (var database = new ShopDatabaseEntities())
+            {
+                return database.PickupPoint
+                    .Where(point => point.IsActive)
+                    .OrderBy(point => point.Id)
+                    .ToList();
+            }
+        }
+
+        public static string BuyProduct(
+            Account account,
+            int productId,
+            int pickupPointId)
+        {
+            using (var database = new ShopDatabaseEntities())
+            {
+                int userId = GetUserId(database, account);
+
+                if (!database.PickupPoint.Any(point =>
+                    point.Id == pickupPointId && point.IsActive))
+                    return "Выберите доступный ПВЗ.";
+
+                var product = database.Product.FirstOrDefault(item =>
+                    item.Id == productId && item.IsActive);
+
+                if (product == null)
+                    return "Товар не найден или недоступен.";
+
+                var order = new Order
+                {
+                    UserId = userId,
+                    PickupPointId = pickupPointId,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                database.Order.Add(order);
+
+                database.OrderProduct.Add(new OrderProduct
+                {
+                    Order = order,
+                    ProductId = product.Id,
+                    Quantity = 1,
+                    PriceAtPurchase = product.Price
+                });
+
+                database.SaveChanges();
+
+                return string.Format(
+                    "Заказ №{0} оформлен. Сумма: {1:F2} руб.",
+                    order.Id, product.Price);
+            }
+        }
+        public static string BuyCart(Account account, int pickupPointId)
+        {
+            using (var database = new ShopDatabaseEntities())
+            {
+                int userId = GetUserId(database, account);
+                if (!database.PickupPoint.Any(point => point.Id == pickupPointId && point.IsActive)) return "Выберите доступный ПВЗ.";
+                var cart = database.CartProduct.Include("Product").Where(item => item.UserId == userId).ToList();
+                if (cart.Count == 0) return "Корзина пустая.";
+                if (cart.Any(item => !item.Product.IsActive)) return "В корзине есть недоступные товары. Удалите их перед покупкой.";
+                var order = new Order
+                {
+                    UserId = userId,
+                    PickupPointId = pickupPointId,
+                    CreatedAt = DateTime.UtcNow
+                };
+                database.Order.Add(order);
+                foreach (var item in cart)
+                {
+                    database.OrderProduct.Add(new OrderProduct
+                    {
+                        Order = order,
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity,
+                        PriceAtPurchase = item.Product.Price
+                    });
+                }
+                decimal total = cart.Sum(item => item.Quantity * item.Product.Price);
+                database.CartProduct.RemoveRange(cart);
+                database.SaveChanges();
+                return string.Format("Заказ №{0} оформлен. Сумма: {1:F2} руб.", order.Id, total);
+            }
+        }
     }
 }
