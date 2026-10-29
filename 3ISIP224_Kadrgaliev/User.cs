@@ -23,10 +23,8 @@ namespace _3ISIP224_Kadrgaliev
     
         public int Id { get; set; }
         public string UserName { get; set; }
-        public byte[] PasswordHash { get; set; }
-        public byte[] PasswordSalt { get; set; }
-        public int PasswordIterations { get; set; }
         public System.DateTime CreatedAt { get; set; }
+        public string Password { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CartProduct> CartProduct { get; set; }
